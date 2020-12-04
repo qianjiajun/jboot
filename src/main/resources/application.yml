@@ -1,0 +1,16 @@
+server:
+  address: 0.0.0.0
+  port: 80
+  servlet:
+    context-path:
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/jboot?serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
