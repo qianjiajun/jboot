@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @Author qjj
@@ -44,7 +45,11 @@ public abstract class BaseServiceImpl<T extends BaseEntity> implements IBaseServ
     @Transactional(readOnly = true)
     @Override
     public T findById(Serializable id) {
-        return baseRepository.findById(id).get();
+        Optional<T> optional = baseRepository.findById(id);
+        if (optional.isPresent()) {
+            return optional.get();
+        }
+        return null;
     }
 
     @Transactional(readOnly = true)
@@ -61,8 +66,12 @@ public abstract class BaseServiceImpl<T extends BaseEntity> implements IBaseServ
 
     @Transactional(readOnly = true)
     @Override
-    public T findOne(Specification<T> e) {
-        return baseRepository.findOne(e).get();
+    public T findOne(Specification<T> t) {
+        Optional<T> optional = baseRepository.findOne(t);
+        if (optional.isPresent()) {
+            return optional.get();
+        }
+        return null;
     }
 
     @Transactional(readOnly = true)

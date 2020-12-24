@@ -1,16 +1,13 @@
 package org.jot.aspect;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.jot.annotation.Verification;
 import org.jot.entity.log.Log;
 import org.jot.entity.user.User;
-import org.jot.enumeration.StatusCode;
 import org.jot.service.log.ILogService;
 import org.jot.util.Const;
 import org.jot.util.ResultSetBuilder;
@@ -22,11 +19,8 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.sql.rowset.serial.SerialClob;
 import java.io.Serializable;
 import java.lang.reflect.Method;
-import java.sql.Clob;
-import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -98,7 +92,16 @@ public class LogAspect {
      */
     @Around("pointCut()")
     public Object around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
-        return proceedingJoinPoint.proceed();
+        Object proceed = proceedingJoinPoint.proceed();
+        if (proceed instanceof ResultSetBuilder.ResultSet) {
+            return proceed;
+        } else if (!(proceed instanceof Serializable)) {
+            return proceed;
+        } else if (proceed instanceof Map) {
+            return ResultSetBuilder.success(new ResultSetBuilder.Result().setAll((Map) proceed));
+        } else {
+            return ResultSetBuilder.success(new ResultSetBuilder.Result().set("data", proceed));
+        }
     }
 
     @AfterReturning(value = "pointCut()", returning = "ret")

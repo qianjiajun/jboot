@@ -90,6 +90,11 @@ public class ResultSetBuilder {
             return result;
         }
 
+        public ResultSet setResult(Object result) {
+            this.result = new Result().set("result", result);
+            return this;
+        }
+
     }
 
     public static class Result extends LinkedHashMap implements Map {

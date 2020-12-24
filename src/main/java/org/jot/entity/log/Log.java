@@ -1,6 +1,8 @@
 package org.jot.entity.log;
 
+import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 import org.jot.entity.BaseEntity;
 
 import javax.persistence.*;
@@ -15,6 +17,7 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "log")
+@TypeDef(name = "json", typeClass = JsonStringType.class)
 public class Log extends BaseEntity implements Serializable {
 
     @Column(name = "name", nullable = false, length = 60)

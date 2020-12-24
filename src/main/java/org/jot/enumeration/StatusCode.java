@@ -25,19 +25,21 @@ public enum StatusCode {
      * 50001-50009 令牌-token
      */
     VERIFIED_FAIL(50001, false, "登录验证失败"),
-    NON_TOKEN(50002, false, "缺失令牌"),
-    INVALID_TOKEN(50003, false, "非法的令牌"),
-    TIMEOUT_TOKEN(50004, false, "令牌已过时"),
+    NON_LOGIN(50002, false, "用户未登录"),
+    NON_TOKEN(50003, false, "缺失令牌"),
+    INVALID_TOKEN(50004, false, "非法的令牌"),
+    TIMEOUT_TOKEN(50005, false, "令牌已过时"),
     /**
      * 50011-50019 用户登录-login
      */
     NON_USER(50011, false, "请输入用户名"),
     NON_PASSWORD(50012, false, "请输入密码"),
     NON_VERIFY_CODE(50013, false, "请输入验证码"),
-    USER_NOT_EXIST(50014, false, "用户不存在"),
-    PASSWORD_ERROR(50015, false, "密码错误"),
-    VERIFY_CODE_ERROR(50016, false, "验证码错误"),
-    USER_FORBIDDEN(50017, false, "用户已被禁用"),
+    USER_NOT_EXIST_OR_PASSWORD_ERROR(50014, false, "用户不存在或密码错误"),
+    USER_NOT_EXIST(50015, false, "用户不存在"),
+    PASSWORD_ERROR(50016, false, "密码错误"),
+    VERIFY_CODE_ERROR(50017, false, "验证码错误"),
+    USER_FORBIDDEN(50018, false, "用户已被禁用"),
     /**
      * 未知异常
      */
@@ -53,6 +55,18 @@ public enum StatusCode {
         this.message = message;
     }
 
+    public static StatusCode getByCode(Integer code) {
+        if (code == null) {
+            return UNKNOWN_ERROR;
+        }
+        for (StatusCode statusCode : StatusCode.values()) {
+            if (statusCode.code == code.intValue()) {
+                return statusCode;
+            }
+        }
+        return UNKNOWN_ERROR;
+    }
+
     public int getCode() {
         return code;
     }
@@ -63,5 +77,38 @@ public enum StatusCode {
 
     public String getMessage() {
         return message;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder statusCode = new StringBuilder();
+        statusCode.append("{\"code\": ")
+                .append(this.code)
+                .append(",\"message\": \"")
+                .append(this.message)
+                .append("\"}");
+        return statusCode.toString();
+    }
+
+    public static StatusCode getBeanFromJSONString(String jsonString) {
+        if (jsonString == null) {
+            return null;
+        }
+        jsonString = jsonString.trim();
+        if ("".equals(jsonString) || jsonString.length() <= 1 || jsonString.charAt(0) != '{' || jsonString.charAt(jsonString.length() - 1) != '}') {
+            return null;
+        }
+        try {
+            String[] keyValues = jsonString.substring(1, jsonString.length()).split(",");
+            for (String keyValue : keyValues) {
+                String[] kv = keyValue.split(":");
+                if ("\"code\"".equals(kv[0])) {
+                    return getByCode(Integer.valueOf(kv[1].trim()));
+                }
+            }
+        } catch (Exception e) {
+            return null;
+        }
+        return null;
     }
 }

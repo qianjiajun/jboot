@@ -26,5 +26,11 @@ spring:
     prefix: classpath:templates/
     suffix: .html
     enabled: true
+logging:
+  level:
+    org:
+      jot: debug
+  file:
+    path: ../logs/jboot
 
 

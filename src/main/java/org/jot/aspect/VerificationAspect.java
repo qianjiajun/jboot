@@ -9,6 +9,7 @@ import org.jot.annotation.Verification;
 import org.jot.enumeration.StatusCode;
 import org.jot.service.user.IUserService;
 import org.jot.util.Const;
+import org.jot.util.GlobalException;
 import org.jot.util.ResultSetBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
@@ -36,8 +37,6 @@ public class VerificationAspect {
     @Autowired
     private HttpSession session;
 
-    private Object proceed;
-
     @Pointcut("execution(* org.jot.controller..*.*(..))")
     public void pointCut() {
     }
@@ -52,23 +51,14 @@ public class VerificationAspect {
         Method method = methodSignature.getMethod();
         Verification verification = method.getAnnotation(Verification.class);
         if (verification == null || !verification.required()) {
-            proceed = proceedingJoinPoint.proceed();
+            return proceedingJoinPoint.proceed();
         } else {
             Boolean isLogin = (Boolean) session.getAttribute(Const.SESSION_IS_LOGIN);
-            if (isLogin == true) {
-                proceed = proceedingJoinPoint.proceed();
+            if (isLogin != null && isLogin == true) {
+                return proceedingJoinPoint.proceed();
             } else {
-                return ResultSetBuilder.fail(StatusCode.VERIFIED_FAIL);
+                throw new GlobalException(StatusCode.NON_LOGIN.toString());
             }
-        }
-        if (proceed instanceof ResultSetBuilder.ResultSet) {
-            return proceed;
-        } else if (!(proceed instanceof Serializable)) {
-            return proceed;
-        } else if (proceed instanceof Map) {
-            return ResultSetBuilder.success(new ResultSetBuilder.Result().setAll((Map) proceed));
-        } else {
-            return ResultSetBuilder.success(new ResultSetBuilder.Result().set("data", proceed));
         }
 
     }
