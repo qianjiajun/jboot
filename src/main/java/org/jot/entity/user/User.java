@@ -1,10 +1,12 @@
-package org.jpa.boot.entity;
+package org.jot.entity.user;
 
-import lombok.ToString;
+import org.jot.annotation.ToString;
+import org.jot.entity.BaseEntity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.io.Serializable;
 
 /**
  * @Author qjj
@@ -12,10 +14,12 @@ import javax.persistence.Table;
  * @Version 1.0
  * @Class User.java
  */
-@ToString
 @Entity
 @Table(name = "user")
-public class User extends BaseModel {
+public class User extends BaseEntity implements Serializable {
+
+    @ToString.Exclude
+    private final static String DEFAULT_PASSWORD = "123456";
 
     @Column(name = "code", length = 36)
     private String code;
@@ -46,9 +50,10 @@ public class User extends BaseModel {
     private Integer age;
 
     @Column(name = "sex", nullable = false)
-    private Boolean sex;
+    private boolean sex;
 
-    public User(){}
+    public User() {
+    }
 
     /**
      * 新增用户使用
@@ -56,8 +61,8 @@ public class User extends BaseModel {
      * @param createdBy 创建人id
      */
     public User(String code, String username, String telephone, String name, Integer age, Boolean sex, Long createdBy) {
-        super(createdBy);
-        this.password = username + "123456";
+        this.setCreatedBy(createdBy);
+        this.resetPassword();
         this.code = code;
         this.username = username;
         this.telephone = telephone;
@@ -67,7 +72,7 @@ public class User extends BaseModel {
     }
 
     public User(String code, String username, String telephone, String email, String qq, String wx, String name, String password, Integer age, Boolean sex, Long createdBy) {
-        super(createdBy);
+        this.setCreatedBy(createdBy);
         this.password = password;
         this.code = code;
         this.username = username;
@@ -88,12 +93,14 @@ public class User extends BaseModel {
      * @param updatedBy 创建人id
      */
     public User(Long id, String password, Long updatedBy) {
-        super(id, updatedBy);
+        this.setId(id);
+        this.setUpdatedBy(updatedBy);
         this.password = password;
     }
 
     public User(Long id, String code, String username, String telephone, String email, String qq, String wx, String name, Integer age, Boolean sex, Long updatedBy) {
-        super(id, updatedBy);
+        this.setId(id);
+        this.setUpdatedBy(updatedBy);
         this.code = code;
         this.username = username;
         this.telephone = telephone;
@@ -137,6 +144,10 @@ public class User extends BaseModel {
         this.password = password;
     }
 
+    public void resetPassword() {
+        this.password = this.username == null ? DEFAULT_PASSWORD : this.username.replace(" ", "") + DEFAULT_PASSWORD;
+    }
+
     public String getEmail() {
         return email;
     }
@@ -177,12 +188,16 @@ public class User extends BaseModel {
         this.age = age;
     }
 
-    public Boolean getSex() {
+    public boolean getSex() {
         return sex;
     }
 
-    public void setSex(Boolean sex) {
+    public void setSex(boolean sex) {
         this.sex = sex;
     }
 
+    @Override
+    public String toString() {
+        return super.toString();
+    }
 }

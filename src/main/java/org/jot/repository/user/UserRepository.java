@@ -1,6 +1,7 @@
-package org.jpa.boot.repository;
+package org.jot.repository.user;
 
-import org.jpa.boot.entity.User;
+import org.jot.entity.user.User;
+import org.jot.repository.BaseRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,7 +14,7 @@ import java.util.Optional;
  * @Version 1.0
  * @Class UserRepository.java
  */
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends BaseRepository<User> {
 
     /**
      * 根据 code 查询用户

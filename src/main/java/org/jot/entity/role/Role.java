@@ -1,10 +1,11 @@
-package org.jpa.boot.entity;
+package org.jot.entity.role;
 
-import lombok.ToString;
+import org.jot.entity.BaseEntity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.io.Serializable;
 
 /**
  * @Author qjj
@@ -12,10 +13,10 @@ import javax.persistence.Table;
  * @Version 1.0
  * @Class Role.java
  */
-@ToString
+
 @Entity
 @Table(name = "role")
-public class Role extends BaseModel {
+public class Role extends BaseEntity implements Serializable {
 
     @Column(name = "code", length = 36)
     private String code;
@@ -23,16 +24,18 @@ public class Role extends BaseModel {
     @Column(name = "name", nullable = false, length = 60)
     private String name;
 
-    public Role(){}
+    public Role() {
+    }
 
     public Role(String code, String name, Long createdBy) {
-        super(createdBy);
+        this.setCreatedBy(createdBy);
         this.code = code;
         this.name = name;
     }
 
     public Role(Long id, String code, String name, Long updatedBy) {
-        super(id, updatedBy);
+        this.setId(id);
+        this.setUpdatedBy(updatedBy);
         this.code = code;
         this.name = name;
     }
@@ -53,4 +56,9 @@ public class Role extends BaseModel {
         this.name = name;
     }
 
+
+    @Override
+    public String toString() {
+        return super.toString();
+    }
 }

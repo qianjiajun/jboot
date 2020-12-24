@@ -14,3 +14,17 @@ spring:
     hibernate:
       ddl-auto: update
     open-in-view: false
+    database-platform: org.hibernate.dialect.MySQL5Dialect
+  thymeleaf:
+    mode: HTML
+    encoding: UTF-8
+    check-template: false
+    check-template-location: false
+    servlet:
+      content-type: text/html
+    cache: false
+    prefix: classpath:templates/
+    suffix: .html
+    enabled: true
+
+
