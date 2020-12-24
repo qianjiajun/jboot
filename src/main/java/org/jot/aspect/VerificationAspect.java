@@ -4,6 +4,8 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
+import org.jot.annotation.Verification;
 import org.jot.enumeration.StatusCode;
 import org.jot.service.user.IUserService;
 import org.jot.util.Const;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpSession;
 import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
@@ -45,7 +48,9 @@ public class VerificationAspect {
      */
     @Around("pointCut()")
     public Object Around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
-        proceedingJoinPoint.getTarget();
+        MethodSignature methodSignature = (MethodSignature) proceedingJoinPoint.getSignature();
+        Method method = methodSignature.getMethod();
+        Verification verification = method.getAnnotation(Verification.class);
         //获得方法执行后的返回值
         Boolean isLogin = (Boolean) session.getAttribute(Const.SESSION_IS_LOGIN);
         if (isLogin) {
