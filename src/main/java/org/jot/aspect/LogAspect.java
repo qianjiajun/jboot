@@ -22,8 +22,11 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.sql.rowset.serial.SerialClob;
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.sql.Clob;
+import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -62,11 +65,15 @@ public class LogAspect {
         }
         log = new Log();
         User user = (User) session.getAttribute(Const.SESSION_USER);
-        log.setCreatedBy(user.getId());
+        if (user == null || user.getId() == null) {
+            log.setCreatedBy(0L);
+        } else {
+            log.setCreatedBy(user.getId());
+        }
         String className = joinPoint.getTarget().getClass().getName();
         String methodName = joinPoint.getSignature().getName();
         log.setApi(className + "." + methodName);
-        log.setOption(logAnnotation.value());
+        log.setName(logAnnotation.value());
         log.setMethod(request.getMethod());
         log.setUrl(request.getRequestURL().toString());
         if (logAnnotation.isRecordParameters()) {
@@ -94,8 +101,11 @@ public class LogAspect {
         return proceedingJoinPoint.proceed();
     }
 
-    @AfterReturning(returning = "ret")
+    @AfterReturning(value = "pointCut()", returning = "ret")
     public void afterReturning(JoinPoint joinPoint, Object ret) {
+        if (log == null) {
+            return;
+        }
         Object result = null;
         if (ret instanceof ResultSetBuilder.ResultSet) {
             ResultSetBuilder.ResultSet resultSet = (ResultSetBuilder.ResultSet) ret;
@@ -106,21 +116,21 @@ public class LogAspect {
         }
         if (logAnnotation.isRecordResultData() && result != null) {
             log.setResult(JSONObject.toJSONString(result));
+
         }
         logService.add(log);
         log = null;
 
     }
 
-    @AfterThrowing(throwing = "e")
-    public void afterThrowing(JoinPoint joinPoint, Object e) {
+    @AfterThrowing(value = "pointCut()", throwing = "e")
+    public void afterThrowing(JoinPoint joinPoint, Throwable e) {
+        if (log == null) {
+            return;
+        }
         log.setSuccess(false);
         if (logAnnotation.isRecordResultData() && e != null) {
-            if (e instanceof Serializable) {
-                log.setResult(JSON.toJSONString(e));
-            } else {
-                log.setResult(e.toString());
-            }
+            log.setResult(e.toString());
         }
         logService.add(log);
         log = null;

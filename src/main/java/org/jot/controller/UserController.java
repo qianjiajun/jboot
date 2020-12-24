@@ -32,10 +32,10 @@ public class UserController {
     @Autowired
     private IUserService userService;
 
-    @Verification
+    @Verification(required = false)
     @Log(value = "分页查询用户")
     @RequestMapping(value = "/page", method = RequestMethod.POST)
-    private Page<User> pageUser(@RequestParam(value = "page", defaultValue = "1") int page, String username) {
+    public Page<User> pageUser(@RequestParam(value = "page", defaultValue = "1") int page, String username) {
         Specification<User> userSpecification = (Specification<User>) (root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> predicateList = new ArrayList<>();
             if (username != null && !username.isEmpty()) {

@@ -13,4 +13,6 @@ import java.lang.annotation.*;
 @Documented
 public @interface Verification {
 
+    boolean required() default true;
+
 }

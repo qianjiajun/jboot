@@ -51,21 +51,26 @@ public class VerificationAspect {
         MethodSignature methodSignature = (MethodSignature) proceedingJoinPoint.getSignature();
         Method method = methodSignature.getMethod();
         Verification verification = method.getAnnotation(Verification.class);
-        //获得方法执行后的返回值
-        Boolean isLogin = (Boolean) session.getAttribute(Const.SESSION_IS_LOGIN);
-        if (isLogin) {
+        if (verification == null || !verification.required()) {
             proceed = proceedingJoinPoint.proceed();
-            if (proceed instanceof ResultSetBuilder.ResultSet) {
-                return proceed;
-            } else if (!(proceed instanceof Serializable)) {
-                return proceed;
-            } else if (proceed instanceof Map) {
-                return ResultSetBuilder.success(new ResultSetBuilder.Result().setAll((Map) proceed));
+        } else {
+            Boolean isLogin = (Boolean) session.getAttribute(Const.SESSION_IS_LOGIN);
+            if (isLogin == true) {
+                proceed = proceedingJoinPoint.proceed();
             } else {
-                return ResultSetBuilder.success(new ResultSetBuilder.Result().set("data", proceed));
+                return ResultSetBuilder.fail(StatusCode.VERIFIED_FAIL);
             }
         }
-        return ResultSetBuilder.fail(StatusCode.VERIFIED_FAIL);
+        if (proceed instanceof ResultSetBuilder.ResultSet) {
+            return proceed;
+        } else if (!(proceed instanceof Serializable)) {
+            return proceed;
+        } else if (proceed instanceof Map) {
+            return ResultSetBuilder.success(new ResultSetBuilder.Result().setAll((Map) proceed));
+        } else {
+            return ResultSetBuilder.success(new ResultSetBuilder.Result().set("data", proceed));
+        }
+
     }
 
 }

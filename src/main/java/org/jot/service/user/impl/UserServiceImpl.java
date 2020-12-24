@@ -15,7 +15,7 @@ import java.util.Optional;
  * @Version 1.0
  * @Class UserServiceImpl.java
  */
-@Service
+@Service("userService")
 public class UserServiceImpl extends BaseServiceImpl<User> implements IUserService {
 
     @Autowired

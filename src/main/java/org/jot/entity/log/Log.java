@@ -1,10 +1,9 @@
 package org.jot.entity.log;
 
+import org.hibernate.annotations.Type;
 import org.jot.entity.BaseEntity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serializable;
 
 /**
@@ -15,11 +14,11 @@ import java.io.Serializable;
  */
 
 @Entity
-@Table(name = "role")
+@Table(name = "log")
 public class Log extends BaseEntity implements Serializable {
 
-    @Column(name = "option", nullable = false, length = 60)
-    private String option;
+    @Column(name = "name", nullable = false, length = 60)
+    private String name;
 
     @Column(name = "method", nullable = false, length = 60)
     private String method;
@@ -30,24 +29,26 @@ public class Log extends BaseEntity implements Serializable {
     @Column(name = "url", nullable = false)
     private String url;
 
-    @Column(name = "param", length = 36)
-    private String param;
-
     @Column(name = "success")
     private Boolean success;
 
-    @Column(name = "result", nullable = false, length = 60)
+    @Type(type = "json")
+    @Column(name = "param", columnDefinition = "json")
+    private String param;
+
+    @Type(type = "json")
+    @Column(name = "result", columnDefinition = "json")
     private String result;
 
     public Log() {
     }
 
-    public String getOption() {
-        return option;
+    public String getName() {
+        return name;
     }
 
-    public void setOption(String option) {
-        this.option = option;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getMethod() {
