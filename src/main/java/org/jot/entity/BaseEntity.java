@@ -1,6 +1,9 @@
 package org.jot.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import org.jot.annotation.ToString;
+import org.jot.enumeration.Status;
+import org.jot.handler.convert.StatusEnumConvert;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -31,31 +34,35 @@ import java.util.Date;
 public abstract class BaseEntity implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
     private Long id;
 
-    @Column(name = "status", nullable = false, length = 1)
-    private int status;
+    @Convert(converter = StatusEnumConvert.class)
+    @Column(name = "status", columnDefinition = "tinyint(1) not null default 1 comment '状态'")
+    private Status status = Status.ACTIVE;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @CreatedDate
-    @Column(name = "createTime", nullable = false, updatable = false)
+    @Column(name = "createTime", updatable = false, columnDefinition = "datetime not null default NOW() comment '创建时间'")
     private Date createTime;
 
     @CreatedBy
-    @Column(name = "createdBy")
+    @Column(name = "createdBy", columnDefinition = "bigint not null default 1 comment '创建人id'")
     private Long createdBy;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @LastModifiedDate
-    @Column(name = "updateTime", nullable = false)
+    @Column(name = "updateTime", columnDefinition = "datetime not null default NOW() comment '最后修改时间'")
     private Date updateTime;
 
     @LastModifiedBy
-    @Column(name = "updatedBy")
+    @Column(name = "updatedBy", columnDefinition = "bigint comment '最后修改人id'")
     private Long updatedBy;
 
     @Version
-    @Column(name = "version", nullable = false)
-    private Long version;
+    @Column(name = "version", nullable = false, columnDefinition = "int not null default 0 comment '版本号'")
+    private Integer version;
 
     public Long getId() {
         return id;
@@ -65,11 +72,11 @@ public abstract class BaseEntity implements Serializable {
         this.id = id;
     }
 
-    public int getStatus() {
+    public Status getStatus() {
         return status;
     }
 
-    public void setStatus(int status) {
+    public void setStatus(Status status) {
         this.status = status;
     }
 
@@ -105,11 +112,11 @@ public abstract class BaseEntity implements Serializable {
         this.updatedBy = updatedBy;
     }
 
-    public Long getVersion() {
+    public Integer getVersion() {
         return version;
     }
 
-    public void setVersion(Long version) {
+    public void setVersion(Integer version) {
         this.version = version;
     }
 
@@ -148,5 +155,37 @@ public abstract class BaseEntity implements Serializable {
         sb.deleteCharAt(sb.length() - 1);
         sb.append("}");
         return sb.toString();
+    }
+
+    @NonNull
+    public BaseEntity exclude() {
+        Field[] DeclaredFields = this.getClass().getDeclaredFields();
+        if (DeclaredFields == null || DeclaredFields.length == 0) {
+            return this;
+        }
+        for (Field declaredField : DeclaredFields) {
+
+            int modifiers = declaredField.getModifiers();
+            // 判断属性是否被final/static修饰
+            if (Modifier.isFinal(modifiers) || Modifier.isStatic(modifiers)) {
+                continue;
+            }
+            // 判断属性是否被transient修饰 判断属性是否含有@ToString.Exclude注解
+            if (Modifier.isTransient(modifiers) || declaredField.isAnnotationPresent(ToString.Exclude.class)) {
+                try {
+                    declaredField.set(this, null);
+                } catch (IllegalAccessException e) {
+                    declaredField.setAccessible(true);
+                    try {
+                        declaredField.set(this, null);
+                    } catch (IllegalAccessException ex) {
+                        ex.printStackTrace();
+                    } finally {
+                        declaredField.setAccessible(false);
+                    }
+                }
+            }
+        }
+        return this;
     }
 }

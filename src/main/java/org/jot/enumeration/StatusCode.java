@@ -40,6 +40,11 @@ public enum StatusCode {
     PASSWORD_ERROR(50016, false, "密码错误"),
     VERIFY_CODE_ERROR(50017, false, "验证码错误"),
     USER_FORBIDDEN(50018, false, "用户已被禁用"),
+    USER_EXISTS(50019, false, "用户已存在"),
+    /**
+     * 50101-50199 没有这个XXX异常
+     */
+    NO_SUCH_ENUMERATION(50101, false, "该枚举不存在"),
     /**
      * 未知异常
      */
@@ -88,27 +93,5 @@ public enum StatusCode {
                 .append(this.message)
                 .append("\"}");
         return statusCode.toString();
-    }
-
-    public static StatusCode getBeanFromJSONString(String jsonString) {
-        if (jsonString == null) {
-            return null;
-        }
-        jsonString = jsonString.trim();
-        if ("".equals(jsonString) || jsonString.length() <= 1 || jsonString.charAt(0) != '{' || jsonString.charAt(jsonString.length() - 1) != '}') {
-            return null;
-        }
-        try {
-            String[] keyValues = jsonString.substring(1, jsonString.length()).split(",");
-            for (String keyValue : keyValues) {
-                String[] kv = keyValue.split(":");
-                if ("\"code\"".equals(kv[0])) {
-                    return getByCode(Integer.valueOf(kv[1].trim()));
-                }
-            }
-        } catch (Exception e) {
-            return null;
-        }
-        return null;
     }
 }

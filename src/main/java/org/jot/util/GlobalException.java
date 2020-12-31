@@ -4,33 +4,31 @@ import org.jot.enumeration.StatusCode;
 
 public class GlobalException extends Exception {
 
-    public GlobalException() {
-        super();
-    }
+    private int code = 500;
+    private String localMessage;
 
     public GlobalException(StatusCode statusCode) {
-        super();
+        super(statusCode.getMessage());
+        this.code = statusCode.getCode();
+        this.localMessage = statusCode.getMessage();
     }
 
     public GlobalException(String message) {
         super(message);
+        this.localMessage = message;
     }
 
-
-    public GlobalException(String message, Throwable cause) {
-        super(message, cause);
+    public GlobalException(int code, String message) {
+        super(message);
+        this.localMessage = message;
+        this.code = code;
     }
 
-
-    public GlobalException(Throwable cause) {
-        super(cause);
+    public int getCode() {
+        return code;
     }
 
-
-    protected GlobalException(String message, Throwable cause,
-                              boolean enableSuppression,
-                              boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
+    public String getLocalMessage() {
+        return localMessage;
     }
-
 }

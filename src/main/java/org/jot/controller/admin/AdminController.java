@@ -42,17 +42,29 @@ public class AdminController extends BaseController {
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public ResultSetBuilder.ResultSet login(@RequestParam(value = "username") String username,
                                             @RequestParam(value = "password") String password) {
-        try {
-            Optional<User> user = userService.findByUsernameAndPassword(username, password);
-            if (!user.isPresent()) {
-                return ResultSetBuilder.fail(StatusCode.USER_NOT_EXIST_OR_PASSWORD_ERROR);
-            }
-            session.setAttribute(Const.SESSION_IS_LOGIN, true);
-            return ResultSetBuilder.success().setResult(user.get());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResultSetBuilder.fail(StatusCode.UNKNOWN_ERROR, e);
+        Optional<User> user = userService.findByUsernameAndPassword(username, password);
+        if (!user.isPresent()) {
+            return ResultSetBuilder.fail(StatusCode.USER_NOT_EXIST_OR_PASSWORD_ERROR);
         }
+        session.setAttribute(Const.SESSION_IS_LOGIN, true);
+        User u = user.get();
+        session.setAttribute(Const.SESSION_USER, u);
+        session.setAttribute(Const.SESSION_USER_ID, u.getId());
+        return ResultSetBuilder.success().setResult(u.exclude());
+
+    }
+
+    @Verification()
+    @Log(value = "登出", isRecordParameters = true, isRecordResultData = true)
+    @RequestMapping(value = "/logout", method = RequestMethod.POST)
+    public ResultSetBuilder.ResultSet logout() {
+        Boolean isLogin = (Boolean) session.getAttribute(Const.SESSION_IS_LOGIN);
+        if (isLogin == null || isLogin == false) {
+            return ResultSetBuilder.fail(StatusCode.NON_LOGIN);
+        }
+        session.invalidate();
+        session = request.getSession(true);
+        return ResultSetBuilder.success();
 
     }
 

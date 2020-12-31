@@ -4,6 +4,8 @@ import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.jot.entity.BaseEntity;
+import org.jot.enumeration.State;
+import org.jot.handler.convert.StateEnumConvert;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -20,28 +22,35 @@ import java.io.Serializable;
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 public class Log extends BaseEntity implements Serializable {
 
-    @Column(name = "name", nullable = false, length = 60)
+    @Column(name = "name", columnDefinition = "varchar(60) not null default '' comment '操作名称'")
     private String name;
 
-    @Column(name = "method", nullable = false, length = 60)
+    @Column(name = "method", columnDefinition = "varchar(60) not null default '' comment '操作方法（GET/POST...）'")
     private String method;
 
-    @Column(name = "api", nullable = false)
-    private String api;
+    @Column(name = "function_name", columnDefinition = "varchar(100) not null default '' comment '调用函数'")
+    private String functionName;
 
-    @Column(name = "url", nullable = false)
+    @Column(name = "url", columnDefinition = "varchar(255) not null default '' comment '调用接口地址'")
     private String url;
 
-    @Column(name = "success")
-    private Boolean success;
+
+    //    @Enumerated(EnumType.ORDINAL)
+    @Convert(converter = StateEnumConvert.class)
+    @Column(name = "success", columnDefinition = "tinyint(1) not null default 0 comment '调用成功'")
+    private State success = State.FAIL;
 
     @Type(type = "json")
-    @Column(name = "param", columnDefinition = "json")
+    @Column(name = "param", columnDefinition = "json comment '接口入参'")
     private String param;
 
     @Type(type = "json")
-    @Column(name = "result", columnDefinition = "json")
+    @Column(name = "result", columnDefinition = "json comment '接口返回结果'")
     private String result;
+
+    @Type(type = "json")
+    @Column(name = "cause", columnDefinition = "json comment '异常原因'")
+    private String cause;
 
     public Log() {
     }
@@ -62,12 +71,12 @@ public class Log extends BaseEntity implements Serializable {
         this.method = method;
     }
 
-    public String getApi() {
-        return api;
+    public String getFunctionName() {
+        return functionName;
     }
 
-    public void setApi(String api) {
-        this.api = api;
+    public void setFunctionName(String functionName) {
+        this.functionName = functionName;
     }
 
     public String getUrl() {
@@ -86,11 +95,11 @@ public class Log extends BaseEntity implements Serializable {
         this.param = param;
     }
 
-    public Boolean getSuccess() {
+    public State getSuccess() {
         return success;
     }
 
-    public void setSuccess(Boolean success) {
+    public void setSuccess(State success) {
         this.success = success;
     }
 
@@ -100,6 +109,14 @@ public class Log extends BaseEntity implements Serializable {
 
     public void setResult(String result) {
         this.result = result;
+    }
+
+    public String getCause() {
+        return cause;
+    }
+
+    public void setCause(String cause) {
+        this.cause = cause;
     }
 
     @Override

@@ -1,10 +1,14 @@
 package org.jot.controller.user;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jot.annotation.Log;
 import org.jot.annotation.Verification;
 import org.jot.controller.BaseController;
+import org.jot.entity.user.Secret;
 import org.jot.entity.user.User;
+import org.jot.enumeration.Status;
 import org.jot.service.user.IUserService;
+import org.jot.util.GlobalException;
 import org.jot.util.ResultSetBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -12,10 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.criteria.Predicate;
 import java.util.ArrayList;
@@ -42,8 +43,9 @@ public class UserController extends BaseController {
                                                @RequestParam(value = "username") String username) {
         Specification<User> userSpecification = (Specification<User>) (root, criteriaQuery, criteriaBuilder) -> {
             List<Predicate> predicateList = new ArrayList<>();
-            if (username != null && !username.isEmpty()) {
-                predicateList.add(criteriaBuilder.like(root.get("username"), "%" + username + "%"));
+            predicateList.add(criteriaBuilder.equal(root.get("status"), Status.ACTIVE));
+            if (StringUtils.isNotBlank(username)) {
+                predicateList.add(criteriaBuilder.like(root.get("username"), String.format("%%%s%%", username)));
             }
             return criteriaBuilder.and(predicateList.toArray(new Predicate[predicateList.size()]));
         };
@@ -58,6 +60,31 @@ public class UserController extends BaseController {
     public ResultSetBuilder.ResultSet findUserById(@RequestParam(value = "id") Long id) {
         User user = userService.findById(id);
         return ResultSetBuilder.success().setResult(user);
+    }
+
+    @Verification
+    @Log(value = "新增用户", isRecordParameters = true, isRecordResultData = true)
+    @RequestMapping(value = "/add", method = RequestMethod.POST)
+    public ResultSetBuilder.ResultSet addUser(@RequestBody User user, String password) throws GlobalException {
+        user.setCreatedBy(operatorId);
+        Secret secret = new Secret(operatorId);
+        if (StringUtils.isNotBlank(password)) {
+            secret.setPassword(password);
+
+        }
+        User u = userService.addUser(user, secret);
+        return ResultSetBuilder.success().setResult(u.getId());
+    }
+
+    @Verification
+    @Log(value = "删除用户", isRecordParameters = true, isRecordResultData = true)
+    @RequestMapping(value = "/delete", method = RequestMethod.POST)
+    public ResultSetBuilder.ResultSet deleteById(@RequestParam(value = "id") Long id) {
+        User user = userService.findById(id);
+        user.setUpdatedBy(operatorId);
+        user.setStatus(Status.DELETED);
+        User u = userService.edit(user);
+        return ResultSetBuilder.success().setResult(u.getId());
     }
 
 }

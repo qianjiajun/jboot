@@ -58,13 +58,23 @@
             <artifactId>fastjson</artifactId>
             <version>1.2.2</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.10</version>
+        </dependency>
         <!--  jpa 使用mysql json 类型-->
         <dependency>
             <groupId>com.vladmihalcea</groupId>
             <artifactId>hibernate-types-52</artifactId>
             <version>2.4.3</version>
         </dependency>
-
+        <!--监控sql日志-->
+<!--        <dependency>-->
+<!--            <groupId>org.bgee.log4jdbc-log4j2</groupId>-->
+<!--            <artifactId>log4jdbc-log4j2-jdbc4.1</artifactId>-->
+<!--            <version>1.16</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

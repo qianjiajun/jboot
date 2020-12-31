@@ -41,4 +41,11 @@ public @interface Log {
      */
     boolean isRecordResultData() default false;
 
+    /**
+     * 是否记录异常
+     *
+     * @return
+     */
+    boolean isRecordCause() default true;
+
 }

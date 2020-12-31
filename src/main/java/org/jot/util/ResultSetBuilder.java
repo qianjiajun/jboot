@@ -23,6 +23,10 @@ public class ResultSetBuilder {
         return new ResultSet(StatusCode.OK, null, null, result);
     }
 
+    public static ResultSet fail(@NonNull GlobalException globalException) {
+        return new ResultSet(globalException);
+    }
+
     public static ResultSet fail(@NonNull StatusCode statusCode) {
         return new ResultSet(statusCode, null, null, null);
     }
@@ -45,7 +49,7 @@ public class ResultSetBuilder {
         private boolean success;
         private String message;
         private String detail;
-        private Throwable throwable;
+        private String cause;
         private Result result;
 
         private ResultSet(int code, boolean success, String message, String detail, Throwable throwable, Result result) {
@@ -53,7 +57,7 @@ public class ResultSetBuilder {
             this.success = success;
             this.message = message;
             this.detail = detail;
-            this.throwable = throwable;
+            this.cause = getMessage(throwable);
             this.result = result;
         }
 
@@ -62,8 +66,22 @@ public class ResultSetBuilder {
             this.success = statusCode.isSuccess();
             this.message = statusCode.getMessage();
             this.detail = detail;
-            this.throwable = throwable;
+            this.cause = getMessage(throwable);
             this.result = result;
+        }
+
+        private ResultSet(GlobalException globalException) {
+            this.code = globalException.getCode();
+            this.success = false;
+            this.message = globalException.getLocalMessage();
+            this.cause = getMessage(globalException);
+        }
+
+        private String getMessage(Throwable throwable) {
+            if (throwable == null || throwable.getCause() == null || throwable.getCause().getMessage() == null) {
+                return null;
+            }
+            return throwable.getCause().getMessage();
         }
 
         public int getCode() {
@@ -82,8 +100,8 @@ public class ResultSetBuilder {
             return detail;
         }
 
-        public Throwable getThrowable() {
-            return throwable;
+        public String getCause() {
+            return cause;
         }
 
         public Result getResult() {

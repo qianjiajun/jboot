@@ -57,7 +57,7 @@ public class VerificationAspect {
             if (isLogin != null && isLogin == true) {
                 return proceedingJoinPoint.proceed();
             } else {
-                throw new GlobalException(StatusCode.NON_LOGIN.toString());
+                throw new GlobalException(StatusCode.NON_LOGIN);
             }
         }
 

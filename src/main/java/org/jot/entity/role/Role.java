@@ -18,10 +18,10 @@ import java.io.Serializable;
 @Table(name = "role")
 public class Role extends BaseEntity implements Serializable {
 
-    @Column(name = "code", length = 36)
+    @Column(name = "code", columnDefinition = "varchar(36) not null default '' comment '编码'")
     private String code;
 
-    @Column(name = "name", nullable = false, length = 60)
+    @Column(name = "name", columnDefinition = "varchar(60) not null default '' comment '角色名称'")
     private String name;
 
     public Role() {

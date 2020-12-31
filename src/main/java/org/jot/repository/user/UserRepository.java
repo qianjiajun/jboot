@@ -2,7 +2,6 @@ package org.jot.repository.user;
 
 import org.jot.entity.user.User;
 import org.jot.repository.BaseRepository;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -71,7 +70,8 @@ public interface UserRepository extends BaseRepository<User> {
      * @param password 用户密码
      * @return User
      */
-    Optional<User> findByIdAndPassword(Long id, String password);
+    @Query(value = "select u.* from user u left join secret p on u.id = p.user_id where p.password=:password and u.id =:userId", nativeQuery = true)
+    Optional<User> findByIdAndPassword(@Param("userId") Long id, @Param("password") String password);
 
     /**
      * 根据 username 和 password 查询用户
@@ -80,7 +80,8 @@ public interface UserRepository extends BaseRepository<User> {
      * @param password 用户密码
      * @return User
      */
-    Optional<User> findByUsernameAndPassword(String username, String password);
+    @Query(value = "select u.* from user u left join secret p on u.id = p.user_id where p.password=:password and u.username=:username", nativeQuery = true)
+    Optional<User> findByUsernameAndPassword(@Param("username") String username, @Param("password") String password);
 
     /**
      * 根据 username 和 password 查询用户

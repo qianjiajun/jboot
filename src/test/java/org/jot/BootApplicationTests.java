@@ -1,7 +1,9 @@
 package org.jot;
 
 import org.jot.entity.user.User;
+import org.jot.enumeration.Gender;
 import org.jot.service.user.IUserService;
+import org.jot.util.GlobalException;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -21,7 +23,9 @@ class BootApplicationTests {
     private IUserService userService;
 
     @Test
-    void contextLoads() {
+    void contextLoads() throws GlobalException {
+
+        insertAdmin();
 
 //        userService.add(new User("33062219900708441X", "wei wang", "15757175721", "王威", 30, true, 1L));
 //        userService.add(new User("330622199209234571", "gang wang", "15757175611", "王刚", 28, true, 1L));
@@ -35,13 +39,23 @@ class BootApplicationTests {
 //        System.out.println(user.toString());
 //        System.out.println(user2.get().toString());
 
-        User user3 = userService.findById(4L);
-        System.out.println(user3.toString());
-        user3.setUpdatedBy(1L);
-//        user3.resetPassword();
-        User user4 = userService.edit(user3);
+        Optional<User> user3 = userService.findByUsername("qjj");
+        if (user3.isPresent()) {
+            System.out.println(user3.toString());
+        }
+    }
 
-        System.out.println(user4.toString());
+    private void insertAdmin() throws GlobalException {
+        User user = new User();
+        user.setCode("330682199304284415");
+        user.setUsername("qjj");
+        user.setTelephone("17764586172");
+        user.setName("钱嘉俊");
+        user.setAge(27);
+        user.setGender(Gender.MALE);
+        user.setCreatedBy(1L);
+        User u = userService.addUser(user, null);
+        Assert.assertNotNull(u.getId());
     }
 
 }

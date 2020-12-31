@@ -1,25 +1,27 @@
 package org.jot.aspect;
 
-import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.reflect.CodeSignature;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.jot.entity.log.Log;
 import org.jot.entity.user.User;
+import org.jot.enumeration.State;
 import org.jot.service.log.ILogService;
 import org.jot.util.Const;
+import org.jot.util.HashMapUtils;
 import org.jot.util.ResultSetBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -33,6 +35,8 @@ import java.util.*;
 @Aspect
 @Component
 public class LogAspect {
+
+    private final static Logger LOGGER = LoggerFactory.getLogger(LogAspect.class);
 
     @Autowired
     private ILogService logService;
@@ -58,32 +62,37 @@ public class LogAspect {
             return;
         }
         log = new Log();
-        User user = (User) session.getAttribute(Const.SESSION_USER);
-        if (user == null || user.getId() == null) {
-            log.setCreatedBy(0L);
-        } else {
-            log.setCreatedBy(user.getId());
-        }
         String className = joinPoint.getTarget().getClass().getName();
         String methodName = joinPoint.getSignature().getName();
-        log.setApi(className + "." + methodName);
+        log.setFunctionName(className + "." + methodName + "()");
         log.setName(logAnnotation.value());
         log.setMethod(request.getMethod());
         log.setUrl(request.getRequestURL().toString());
         if (logAnnotation.isRecordParameters()) {
-            Object[] args = joinPoint.getArgs();
-            List<Object> list = new LinkedList<>();
-            for (Object arg : args) {
-                if (arg instanceof HttpServletRequest) {
-                    list.add(((HttpServletRequest) arg).getParameterMap());
-                } else if (arg instanceof HttpServletResponse || arg instanceof HttpSession || arg instanceof MultipartFile || arg instanceof MultipartFile[]) {
-
-                } else {
-                    list.add(arg);
-                }
+            try {
+                log.setParam(JSON.toJSONString(getNameAndValue(joinPoint)));
+            } catch (Exception e) {
+                LOGGER.error("", e);
             }
-            log.setParam(JSONArray.toJSONString(list));
         }
+    }
+
+    private Map<String, Object> getNameAndValue(JoinPoint joinPoint) throws Exception {
+        Map<String, Object> param = new HashMap<>();
+        Object[] values = joinPoint.getArgs();
+        String[] names = ((CodeSignature) joinPoint.getSignature()).getParameterNames();
+        for (int i = 0; i < names.length; i++) {
+            if (names[i] == null || "".equals(names[i].trim())) {
+                continue;
+            }
+            if ("password".equalsIgnoreCase(names[i].trim())) {
+                param.put(names[i], "secret");
+                continue;
+            }
+            param.put(names[i], values[i]);
+
+        }
+        return param;
     }
 
     /**
@@ -92,16 +101,7 @@ public class LogAspect {
      */
     @Around("pointCut()")
     public Object around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
-        Object proceed = proceedingJoinPoint.proceed();
-        if (proceed instanceof ResultSetBuilder.ResultSet) {
-            return proceed;
-        } else if (!(proceed instanceof Serializable)) {
-            return proceed;
-        } else if (proceed instanceof Map) {
-            return ResultSetBuilder.success(new ResultSetBuilder.Result().setAll((Map) proceed));
-        } else {
-            return ResultSetBuilder.success(new ResultSetBuilder.Result().set("data", proceed));
-        }
+        return proceedingJoinPoint.proceed();
     }
 
     @AfterReturning(value = "pointCut()", returning = "ret")
@@ -112,11 +112,12 @@ public class LogAspect {
         Object result = null;
         if (ret instanceof ResultSetBuilder.ResultSet) {
             ResultSetBuilder.ResultSet resultSet = (ResultSetBuilder.ResultSet) ret;
-            log.setSuccess(resultSet.isSuccess());
+            log.setSuccess(State.ofValue(resultSet.isSuccess() == true ? 1 : 0));
             result = resultSet.getResult();
         } else {
-            log.setSuccess(true);
+            log.setSuccess(State.SUCCESS);
         }
+        setOperatorId();
         if (logAnnotation.isRecordResultData() && result != null) {
             log.setResult(JSONObject.toJSONString(result));
 
@@ -131,13 +132,25 @@ public class LogAspect {
         if (log == null) {
             return;
         }
-        log.setSuccess(false);
-        if (logAnnotation.isRecordResultData() && e != null) {
-            log.setResult(e.toString());
+        log.setSuccess(State.FAIL);
+        setOperatorId();
+        if (logAnnotation.isRecordCause() && e != null) {
+            log.setCause(new HashMapUtils() {{
+                add("cause", e.getCause() == null ? e.getMessage() : e.getCause().getMessage());
+            }}.toJSONString());
         }
         logService.add(log);
         log = null;
     }
 
+
+    private void setOperatorId() {
+        User user = (User) session.getAttribute(Const.SESSION_USER);
+        if (user == null || user.getId() == null) {
+            log.setCreatedBy(0L);
+        } else {
+            log.setCreatedBy(user.getId());
+        }
+    }
 
 }

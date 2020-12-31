@@ -1,7 +1,9 @@
 package org.jot.service.user;
 
+import org.jot.entity.user.Secret;
 import org.jot.entity.user.User;
 import org.jot.service.base.IBaseService;
+import org.jot.util.GlobalException;
 
 import java.util.Optional;
 
@@ -12,6 +14,23 @@ import java.util.Optional;
  * @Class UserService.java
  */
 public interface IUserService extends IBaseService<User> {
+
+
+    /**
+     * 新增用户
+     *
+     * @param user
+     * @param secret
+     */
+    User addUser(User user, Secret secret) throws GlobalException;
+
+    /**
+     * 重置密码
+     *
+     * @param secret
+     */
+    void resetPassword(Secret secret);
+
 
     /**
      * 根据 code 查询用户
